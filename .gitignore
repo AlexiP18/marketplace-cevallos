@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun-debug.log*
+
+# Runtime / Build outputs
+dist/
+build/
+.next/
+out/
+admin-ui/
+.vendure/
+
+# Vendure asset storage / generated emails
+apps/server/static/assets/
+apps/server/static/email/test-emails/
+
+# Testing
+coverage/
+
+# Misc & OS files
+.DS_Store
+Thumbs.db
+*.pem
+.idea/
+.vscode/
+*.tsbuildinfo
+next-env.d.ts

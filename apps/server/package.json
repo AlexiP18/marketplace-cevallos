@@ -1,0 +1,34 @@
+{
+  "name": "server",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:server": "vendure dev server",
+    "dev:worker": "vendure dev worker",
+    "dev:dashboard": "vendure dev dashboard",
+    "dev": "vendure dev all",
+    "build": "vendure build all",
+    "build:server": "vendure build server",
+    "build:worker": "vendure build worker",
+    "build:dashboard": "vendure build dashboard",
+    "start:server": "node ./dist/index.js",
+    "start:worker": "node ./dist/index-worker.js",
+    "start": "vendure start all",
+    "test:multivendor": "ts-node -T src/test-multivendor.ts"
+  },
+  "dependencies": {
+    "@vendure/asset-server-plugin": "3.7.3",
+    "@vendure/core": "3.7.3",
+    "@vendure/dashboard": "3.7.3",
+    "@vendure/email-plugin": "3.7.3",
+    "@vendure/graphiql-plugin": "3.7.3",
+    "dotenv": "18.0.4",
+    "pg": "8.23.0"
+  },
+  "devDependencies": {
+    "@vendure/cli": "3.7.3",
+    "ts-node": "10.9.2",
+    "typescript": "5.8.2",
+    "vite": "7.3.6"
+  }
+}

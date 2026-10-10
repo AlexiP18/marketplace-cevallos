@@ -1,0 +1,23 @@
+{
+  "NotFound": {
+    "title": "Seite nicht gefunden",
+    "message": "Die gesuchte Seite existiert nicht, wurde verschoben oder ist vorübergehend nicht verfügbar.",
+    "goHome": "Zur Startseite",
+    "browseProducts": "Produkte durchsuchen",
+    "popularCollections": "Beliebte Kategorien"
+  },
+  "Footer": {
+    "description": "Ein moderner, Headless-E-Commerce-Shop, erstellt mit Vendure und Next.js. Schnell, flexibel und produktionsbereit.",
+    "categories": "Kategorien",
+    "customer": "Kunde",
+    "shopAll": "Alle Produkte",
+    "orders": "Bestellungen",
+    "account": "Konto",
+    "vendure": "Vendure",
+    "github": "GitHub",
+    "documentation": "Dokumentation",
+    "sourceCode": "Quellcode",
+    "copyright": "Vendure Store. Alle Rechte vorbehalten.",
+    "poweredBy": "Powered by"
+  }
+}
