@@ -26,6 +26,8 @@ Los registros históricos de implementación documentan código incorporado en G
 
 GitHub Actions comprueba tipos del backend y storefront con Node.js 22, sin conectar a PostgreSQL o Redis. Esto no valida el dashboard, la compilación de producción ni los flujos de negocio. Las validaciones adicionales deben corresponder al cambio y a las instrucciones del proyecto; documenta cualquier validación omitida.
 
+La primera ejecución del workflow fue bloqueada por GitHub por un problema de facturación de la cuenta, antes de iniciar el job. Mientras se resuelve, este check no es obligatorio para combinar cambios. Tras restablecer Actions, ejecuta el workflow y confirma el resultado antes de convertirlo en requisito de `main`.
+
 No publiques archivos `.env`, credenciales, datos personales de clientes ni archivos generados. Describe las variables requeridas sin sus valores. Para producción consulta [MARKETPLACE.md](deploy/MARKETPLACE.md) y [SECURITY.md](deploy/SECURITY.md).
 
 ## Integración
