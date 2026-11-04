@@ -1,0 +1,32 @@
+name: Compilación
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compile-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  types:
+    name: Tipos del backend y storefront
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Comprobar tipos del backend sin iniciar servicios
+        run: npx tsc --project apps/server/tsconfig.json --noEmit
+      - name: Comprobar tipos del storefront
+        run: npm run check-types -w storefront

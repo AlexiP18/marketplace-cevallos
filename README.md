@@ -14,6 +14,11 @@ vendure-prueba/
 └── package.json      # Root workspace configuration
 ```
 
+## Trabajo con Linear y GitHub
+
+Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para crear ramas, vincular tareas ECOMM,
+abrir pull requests y registrar la validación de los cambios.
+
 ## Architecture and Requirements
 
 The project follows [RNF-08: modular architecture](openspec/specs/modular-architecture/spec.md).
