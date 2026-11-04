@@ -18,6 +18,7 @@ export async function registerSellerAction(input: RegisterSellerInput): Promise<
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Apollo-Require-Preflight': 'true',
                 'vendure-token': VENDURE_CHANNEL_TOKEN,
             },
             body: JSON.stringify({

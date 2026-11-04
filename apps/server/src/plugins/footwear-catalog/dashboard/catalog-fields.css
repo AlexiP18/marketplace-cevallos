@@ -1,0 +1,13 @@
+@media (min-width: 768px) {
+    .grid:has(> [data-slot="field"] #field-name):has(> [data-slot="field"] #field-slug) {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+[data-slot="field"]:has([aria-label="Precio base"]) > [data-slot="field-label"] {
+    display: none;
+}
+
+[data-slot="field"]:has(.product-color-combinations-card) > [data-slot="field-label"] {
+    display: none;
+}

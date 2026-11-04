@@ -92,6 +92,7 @@ export interface AdministratorDataInput {
     password: string;
     confirmPassword: string;
     contactPhone: string;
+    photoAssetId?: string | number | null;
 }
 
 export interface RegisterSellerInput {
@@ -105,8 +106,9 @@ export interface RegisterSellerInput {
 
 export interface UpdateSellerProfileInput {
     id: string | number;
-    business?: Partial<BusinessDataInput>;
+    business?: Partial<Omit<BusinessDataInput, 'logoAssetId'>> & { logoAssetId?: string | number | null };
     tax?: Partial<TaxDataInput>;
+    administrator?: Partial<Omit<AdministratorDataInput, 'password' | 'confirmPassword'>>;
     paymentModalities?: Partial<PaymentModalities>;
     primaryBankAccount?: Partial<BankAccount>;
     hasSecondaryAccount?: boolean;

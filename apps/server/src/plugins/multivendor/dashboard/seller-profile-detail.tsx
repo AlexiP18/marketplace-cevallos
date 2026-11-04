@@ -11,12 +11,15 @@ import {
     CardHeader,
     CardTitle,
     Button,
+    PermissionGuard,
 } from '@vendure/dashboard';
 import { graphql } from '@/gql';
-import { useParams } from '@tanstack/react-router';
+import { Link, useParams } from '@tanstack/react-router';
 import { CheckCircle, XCircle, Ban } from 'lucide-react';
 
-const sellerProfileDetailDocument = graphql(`
+export const sellerPhotoQuery = `query SellerAdministratorPhoto($id: ID!) { sellerProfile(id: $id) { administratorPhoto { id preview } } }`;
+
+export const sellerProfileDetailDocument = graphql(`
     query SellerProfileDetail($id: ID!) {
         sellerProfile(id: $id) {
             id
@@ -171,6 +174,8 @@ function SellerProfileDetailPage() {
         queryFn: () => api.query(sellerProfileDetailDocument, { id }),
     });
 
+    const photo = useQuery({ queryKey: ['seller-administrator-photo', id], queryFn: () => api.query<{ sellerProfile: { administratorPhoto: { id: string; preview: string } | null } | null }>(sellerPhotoQuery, { id }) });
+
     const approveMutation = useMutation({
         mutationFn: () => api.mutate(approveSellerProfileMutation, { id }),
         onSuccess: () => {
@@ -226,6 +231,7 @@ function SellerProfileDetailPage() {
                     <StatusBadge status={profile.status} />
                 </div>
                 <div className="flex gap-2">
+                    <PermissionGuard requires="SuperAdmin"><Button variant="outline" render={<Link to="/seller-profiles/$id/edit" params={{ id }} />}>Editar datos</Button></PermissionGuard>
                     {profile.status === 'PENDING_APPROVAL' && (
                         <>
                             <Button
@@ -317,6 +323,7 @@ function SellerProfileDetailPage() {
                         <CardDescription>Información del administrador del taller</CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {photo.data?.sellerProfile?.administratorPhoto && <img src={photo.data.sellerProfile.administratorPhoto.preview} alt="Foto de perfil del administrador" className="mb-4 h-20 w-20 rounded-full border object-cover" />}
                         <dl className="grid grid-cols-2 gap-4">
                             <LabeledField label="Nombres" value={profile.adminFirstName} />
                             <LabeledField label="Apellidos" value={profile.adminLastName} />

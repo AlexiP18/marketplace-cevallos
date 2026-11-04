@@ -10,6 +10,7 @@ import {getRouteLocale} from '@/platform/i18n/server';
 import {getTranslations} from 'next-intl/server';
 import {query} from '@/platform/vendure/api';
 import {graphql} from '@/platform/vendure/graphql';
+import {ReservationCountdown} from '../reservation-countdown';
 
 const GetOrderByCodeQuery = graphql(`
     query GetOrderByCode($code: String!) {
@@ -69,6 +70,7 @@ export async function OrderConfirmation({paramsPromise}: OrderConfirmationProps)
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="max-w-3xl mx-auto">
+                <ReservationCountdown orderCode={order.code} />
                 <div className="text-center mb-10">
                     <div className="flex justify-center mb-6">
                         <div className="rounded-full bg-primary p-5 shadow-lg shadow-primary/25">

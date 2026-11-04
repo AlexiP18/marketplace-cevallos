@@ -23,6 +23,18 @@ This project was generated with `@vendure/create`.
 - Do not commit `.env` values or generated runtime data.
 - Do not use `dbConnectionOptions.synchronize: true` for production data.
 
+## Modular Architecture — RNF-08
+
+- Apply [the architecture guide](docs/architecture.md) and [RNF-08](openspec/specs/modular-architecture/spec.md) across the backend, dashboard, storefront and Worker.
+- Keep each change in its owning domain. Resolvers/controllers handle transport and authorization; services own business rules and transactions; entities/migrations define persistence; UI components handle presentation and interaction.
+- Keep authoritative pricing, stock, permissions and identifier rules in the backend. Frontend previews do not replace server validation.
+- Reuse Vendure services and `TransactionalConnection`; do not add a repository wrapper, interface or new layer solely to mirror an existing call.
+- Integrate domains through explicitly exported services, contracts or events. Do not import another module's UI internals or mutate its data while bypassing its invariants. Document channel-scoped reporting queries that join domains.
+- Inject plugin options through provider tokens. Services must not import their plugin registration class to read static options or create circular imports.
+- Keep code shared by the browser and Worker free of backend services, database access and secrets; isolate platform-specific adapters.
+- Before changing a contract, find its callers, jobs, tests and migrations. Update those consumers together and run the affected integration checks.
+- Record existing coupling in the architecture guide and reduce it when the related behavior changes. Broad refactors require a concrete need; do not introduce microservices or generic abstractions to satisfy this requirement.
+
 ## Commands
 
 - Start development: `npm run dev`

@@ -1,10 +1,12 @@
 'use client';
 
+import {safeHtml} from '@/lib/safe-html';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, MapPin, Truck, CreditCard, Edit, Mail, Smartphone, Globe } from 'lucide-react';
 import { useCheckout } from '../checkout-provider';
-import { placeOrder as placeOrderAction } from '../actions';
+import { placeOrder as placeOrderAction, reserveCheckoutStock } from '../actions';
 import { Price } from '@/features/pricing/price';
 import {useTranslations} from 'next-intl';
 
@@ -16,6 +18,8 @@ export default function ReviewStep({ onEditStep }: ReviewStepProps) {
   const t = useTranslations('Checkout');
   const { order, paymentMethods, selectedPaymentMethodCode, isGuest } = useCheckout();
   const [loading, setLoading] = useState(false);
+  const [stockConfirmed,setStockConfirmed]=useState(false);
+  const [errorMessage,setErrorMessage]=useState<string>();
 
   const selectedPaymentMethod = paymentMethods.find(
     (method) => method.code === selectedPaymentMethodCode
@@ -24,20 +28,26 @@ export default function ReviewStep({ onEditStep }: ReviewStepProps) {
   const handlePlaceOrder = async () => {
     if (!selectedPaymentMethodCode) return;
 
-    setLoading(true);
+    setLoading(true);setErrorMessage(undefined);setStockConfirmed(false);
     try {
-      await placeOrderAction(selectedPaymentMethodCode);
+      const stock=await reserveCheckoutStock();
+      if(stock.error) throw new Error(stock.error);
+      setStockConfirmed(stock.stockConfirmed);
+      const result=await placeOrderAction(selectedPaymentMethodCode,{},stock.id);
+      if(result?.error) throw new Error(result.error);
     } catch (error) {
       if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
         throw error;
       }
-      console.error('Error placing order:', error);
+      setErrorMessage(error instanceof Error ? error.message : t('unexpectedError'));
       setLoading(false);
     }
   };
 
   return (
     <div className="space-y-6">
+      {loading && <p role="status" className="rounded-md border p-3 text-sm">{stockConfirmed?t('stockReservedPreparing'):t('reservingStock')}</p>}
+      {errorMessage && <p role="alert" className="text-sm text-destructive">{errorMessage}</p>}
       <h3 className="font-semibold text-lg">{t('reviewYourOrder')}</h3>
 
       <div className={`grid grid-cols-1 gap-6 ${isGuest ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-3'}`}>
@@ -55,6 +65,7 @@ export default function ReviewStep({ onEditStep }: ReviewStepProps) {
                 <p className="text-muted-foreground">{order.customer.emailAddress}</p>
               </div>
               <Button
+                disabled={loading}
                 variant="outline"
                 size="sm"
                 onClick={() => onEditStep('contact')}
@@ -87,6 +98,7 @@ export default function ReviewStep({ onEditStep }: ReviewStepProps) {
                 <p className="text-muted-foreground">{order.shippingAddress.phoneNumber}</p>
               </div>
               <Button
+                disabled={loading}
                 variant="outline"
                 size="sm"
                 onClick={() => onEditStep('shipping')}
@@ -117,6 +129,7 @@ export default function ReviewStep({ onEditStep }: ReviewStepProps) {
                 </p>
               </div>
               <Button
+                disabled={loading}
                 variant="outline"
                 size="sm"
                 onClick={() => onEditStep('delivery')}
@@ -159,10 +172,11 @@ export default function ReviewStep({ onEditStep }: ReviewStepProps) {
                   )}
                 </div>
                 {selectedPaymentMethod.description && (
-                  <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: selectedPaymentMethod.description }} />
+                  <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: safeHtml(selectedPaymentMethod.description) }} />
                 )}
               </div>
               <Button
+                disabled={loading}
                 variant="outline"
                 size="sm"
                 onClick={() => onEditStep('payment')}

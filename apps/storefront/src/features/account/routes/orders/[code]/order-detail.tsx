@@ -10,6 +10,7 @@ import Image from 'next/image';
 import {Link} from '@/platform/i18n/navigation';
 import {Price} from '@/features/pricing/price';
 import {OrderStatusBadge} from '@/features/orders/order-status-badge';
+import {ReservationCountdown} from '@/features/orders/reservation-countdown';
 import {formatDate} from '@/platform/i18n/format';
 import {useLocale, useTranslations} from 'next-intl';
 import type {ResultOf} from '@/platform/vendure/graphql';
@@ -53,6 +54,7 @@ export function OrderDetail({orderPromise}: OrderDetailProps) {
                 </div>
             </div>
 
+            <ReservationCountdown orderCode={order.code} />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>

@@ -7,6 +7,7 @@ import {ProductGrid} from '@/features/products/product-grid';
 import {buildSearchInput, getCurrentPage} from "@/features/search/search-helpers";
 import {query} from "@/platform/vendure/api";
 import {SearchProductsQuery} from '@/features/search/graphql';
+import {FootwearFiltersData} from '@/features/search/footwear-filters-data';
 
 interface SearchResultsProps {
     searchParams: Promise<{
@@ -29,6 +30,7 @@ export async function SearchResults({searchParams}: SearchResultsProps) {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Filters Sidebar */}
             <aside className="lg:col-span-1">
+                <Suspense fallback={<div className="h-32 animate-pulse bg-muted rounded-lg"/>}><FootwearFiltersData /></Suspense>
                 <Suspense fallback={<div className="h-64 animate-pulse bg-muted rounded-lg"/>}>
                     <FacetFilters productDataPromise={productDataPromise}/>
                 </Suspense>

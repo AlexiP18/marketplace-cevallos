@@ -3,6 +3,8 @@ import {
     Administrator,
     AdministratorService,
     Asset,
+    AssetService,
+    AssetType,
     Channel,
     ChannelService,
     ConfigService,
@@ -22,10 +24,12 @@ import {
 import { DEFAULT_SELLER_PERMISSIONS, MULTIVENDOR_PLUGIN_OPTIONS } from '../constants';
 import { SellerProfile } from '../entities/seller-profile.entity';
 import { SellerRegisteredEvent } from '../events/seller-registered.event';
+import { AdministratorPersonalProfileService } from './administrator-personal-profile.service';
 import {
     MultivendorPluginOptions,
     RegisterSellerInput,
     SellerProfileStatus,
+    SocialLinks,
 } from '../types';
 
 @Injectable()
@@ -36,6 +40,8 @@ export class SellerRegistrationService {
         private sellerService: SellerService,
         private roleService: RoleService,
         private administratorService: AdministratorService,
+        private assetService: AssetService,
+        private personalProfiles: AdministratorPersonalProfileService,
         private requestContextService: RequestContextService,
         private configService: ConfigService,
         private eventBus: EventBus,
@@ -55,15 +61,30 @@ export class SellerRegistrationService {
     async registerSeller(
         ctx: RequestContext,
         input: RegisterSellerInput,
+        activateImmediately = false,
     ): Promise<{ success: boolean; message: string; profile: SellerProfile }> {
         // 1. Validation
         await this.validateRegistrationInput(ctx, input);
 
+        if (input.administrator?.photoAssetId && ctx.apiType !== 'admin') {
+            throw new UserInputError('La foto de perfil se puede establecer desde el administrador.');
+        }
+
         // 2. Obtain elevated administrative context
-        const adminCtx = await this.getSuperAdminContext(ctx);
+        const adminCtx = ctx.apiType === 'admin' ? ctx : await this.getSuperAdminContext(ctx);
 
         const slug = input.business.slug.trim().toLowerCase();
         const businessName = input.business.name.trim();
+
+        let logoAsset: Asset | undefined;
+        if (input.business.logoAssetId) {
+            logoAsset = await this.assetService.findOne(adminCtx, input.business.logoAssetId);
+            if (!logoAsset || logoAsset.type !== AssetType.IMAGE) throw new UserInputError('Selecciona una imagen válida para el logo.');
+        }
+        if (input.administrator.photoAssetId) {
+            const photo = await this.assetService.findOne(adminCtx, input.administrator.photoAssetId);
+            if (!photo || photo.type !== AssetType.IMAGE) throw new UserInputError('Selecciona una imagen válida para la foto de perfil.');
+        }
 
         // 3. Create Vendure Seller
         const seller = await this.sellerService.create(adminCtx, {
@@ -111,23 +132,8 @@ export class SellerRegistrationService {
             roleIds: [role.id],
         });
 
-        // 7. Find logo asset if provided
-        let logoAsset: Asset | undefined;
-        if (input.business.logoAssetId) {
-            try {
-                logoAsset = await this.connection.getEntityOrThrow(
-                    adminCtx,
-                    Asset,
-                    input.business.logoAssetId,
-                );
-            } catch {
-                // If asset not found, continue without throwing fatal error
-                logoAsset = undefined;
-            }
-        }
-
         // 8. Create and persist SellerProfile
-        const initialStatus = this.options.autoApproveSellers
+        const initialStatus = activateImmediately || this.options.autoApproveSellers
             ? SellerProfileStatus.ACTIVE
             : SellerProfileStatus.PENDING_APPROVAL;
 
@@ -162,6 +168,8 @@ export class SellerRegistrationService {
             .getRepository(adminCtx, SellerProfile)
             .save(profile);
 
+        await this.personalProfiles.save(adminCtx, administrator, { phone: profile.adminPhone, photoAssetId: input.administrator.photoAssetId });
+
         // 9. Publish event
         await this.eventBus.publish(
             new SellerRegisteredEvent(
@@ -176,11 +184,25 @@ export class SellerRegistrationService {
 
         return {
             success: true,
-            message: this.options.autoApproveSellers
+            message: activateImmediately || this.options.autoApproveSellers
                 ? 'Registro de vendedor completado y activado exitosamente.'
                 : 'Registro de vendedor completado con éxito. Su cuenta se encuentra pendiente de aprobación.',
             profile: savedProfile,
         };
+    }
+
+    async isEmailAvailable(emailAddress: string): Promise<boolean> {
+        const email = emailAddress.trim().toLowerCase();
+        if (!email) return false;
+        const [user, administrator] = await Promise.all([
+            this.connection.rawConnection.getRepository(User).findOne({
+                where: { identifier: email },
+            }),
+            this.connection.rawConnection.getRepository(Administrator).findOne({
+                where: { emailAddress: email },
+            }),
+        ]);
+        return !user && !administrator;
     }
 
     /**
@@ -210,23 +232,9 @@ export class SellerRegistrationService {
             throw new UserInputError('El correo electrónico no es válido.');
         }
 
-        const existingUser = await this.connection.rawConnection.getRepository(User).findOne({
-            where: { identifier: email },
-        });
-        if (existingUser) {
+        if (!(await this.isEmailAvailable(email))) {
             throw new UserInputError(
-                `Ya existe un usuario registrado con el correo ${email}.`,
-            );
-        }
-
-        const existingAdmin = await this.connection.rawConnection
-            .getRepository(Administrator)
-            .findOne({
-                where: { emailAddress: email },
-            });
-        if (existingAdmin) {
-            throw new UserInputError(
-                `Ya existe un administrador registrado con el correo ${email}.`,
+                'Este correo ya está registrado. Usa otro correo para la cuenta administradora.',
             );
         }
 
@@ -285,6 +293,7 @@ export class SellerRegistrationService {
                 'de WhatsApp',
             );
         }
+        this.validateSocialLinks(input.business.socialLinks);
 
         // Primary bank account validation
         if (
@@ -296,6 +305,9 @@ export class SellerRegistrationService {
             throw new UserInputError(
                 'Debe proporcionar todos los datos obligatorios de la cuenta bancaria principal (Institución, Tipo de Cuenta y Número de Cuenta).',
             );
+        }
+        if (input.primaryBankAccount.accountHolderId?.trim()) {
+            this.validateEcuadorianIdentityDocument(input.primaryBankAccount.accountHolderId);
         }
 
         // Secondary bank account validation if provided
@@ -309,6 +321,45 @@ export class SellerRegistrationService {
                     'Si define una cuenta bancaria secundaria, debe incluir Institución, Tipo y Número de Cuenta.',
                 );
             }
+            if (input.secondaryBankAccount.accountHolderId?.trim()) {
+                this.validateEcuadorianIdentityDocument(input.secondaryBankAccount.accountHolderId);
+            }
+        }
+    }
+
+    validateSocialLinks(links?: SocialLinks): void {
+        for (const [network, link] of Object.entries(links || {})) {
+            if (network === 'whatsapp' || !link?.trim()) continue;
+            try {
+                const url = new URL(link);
+                if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+            } catch {
+                throw new UserInputError(`El enlace de ${network} debe ser una URL válida que inicie con http:// o https://.`);
+            }
+        }
+    }
+
+    validateEcuadorianIdentityDocument(document: string): void {
+        const clean = document.replace(/\D/g, '');
+        if (clean.length === 13) {
+            this.validateEcuadorianRuc(clean);
+            return;
+        }
+        if (clean.length !== 10 || !/\d{10}/.test(clean)) {
+            throw new UserInputError('La cédula o RUC del titular debe tener 10 o 13 dígitos válidos.');
+        }
+        const province = Number(clean.slice(0, 2));
+        const third = Number(clean[2]);
+        if ((province < 1 || province > 24) && province !== 30 || third > 5) {
+            throw new UserInputError('La cédula del titular no corresponde a un documento ecuatoriano válido.');
+        }
+        const coefficients = [2, 1, 2, 1, 2, 1, 2, 1, 2];
+        const sum = coefficients.reduce((total, coefficient, index) => {
+            const result = Number(clean[index]) * coefficient;
+            return total + (result >= 10 ? result - 9 : result);
+        }, 0);
+        if ((10 - sum % 10) % 10 !== Number(clean[9])) {
+            throw new UserInputError('La cédula del titular no es válida.');
         }
     }
 
@@ -320,7 +371,7 @@ export class SellerRegistrationService {
      * - Sociedad pública (tercer dígito 6, algoritmo módulo 11 y establecimiento >= 0001)
      * - Sociedad privada / jurídica (tercer dígito 9, algoritmo módulo 11 y establecimiento >= 001)
      */
-    private validateEcuadorianRuc(ruc: string): void {
+    validateEcuadorianRuc(ruc: string): void {
         const clean = ruc?.trim();
         if (!clean || !/^\d{13}$/.test(clean)) {
             throw new UserInputError('El RUC debe tener exactamente 13 dígitos numéricos.');
@@ -407,7 +458,7 @@ export class SellerRegistrationService {
      * - Debe iniciar con '09'
      * - Formatea al estándar "096 264 6958"
      */
-    private validateAndFormatEcuadorianMobile(phone: string, fieldName: string): string {
+    validateAndFormatEcuadorianMobile(phone: string, fieldName: string): string {
         if (!phone || typeof phone !== 'string') {
             throw new UserInputError(`El número de celular ${fieldName} es obligatorio.`);
         }

@@ -18,5 +18,11 @@
   },
   "workspaces": [
     "apps/*"
-  ]
+  ],
+  "dependencies": {
+    "canvas": "^3.2.3"
+  },
+  "overrides": {
+    "canvas": "$canvas"
+  }
 }

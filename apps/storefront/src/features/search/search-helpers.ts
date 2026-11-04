@@ -1,4 +1,5 @@
 export interface SearchInputParams {
+    footwear?: Partial<Record<'talla' | 'color' | 'capellada' | 'suela' | 'horma', string>>;
     term?: string;
     collectionSlug?: string;
     take: number;
@@ -36,6 +37,7 @@ export function buildSearchInput({ searchParams, collectionSlug }: BuildSearchIn
     };
 
     return {
+        footwear: Object.fromEntries(['talla', 'color', 'capellada', 'suela', 'horma'].flatMap(key => typeof searchParams[key] === 'string' && searchParams[key] ? [[key, searchParams[key]]] : [])),
         ...(searchTerm && { term: searchTerm }),
         ...(collectionSlug && { collectionSlug }),
         take,

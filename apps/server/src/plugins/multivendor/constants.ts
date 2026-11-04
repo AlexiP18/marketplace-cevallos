@@ -8,6 +8,7 @@ export const loggerCtx = 'MultivendorPlugin';
  * Standard permissions granted to a seller administrator scoped to their own channel.
  */
 export const DEFAULT_SELLER_PERMISSIONS: Permission[] = [
+    'ManageWarehouseDispatch' as Permission,
     Permission.Authenticated,
     // Catalog
     Permission.ReadCatalog,

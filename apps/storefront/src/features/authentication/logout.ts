@@ -7,8 +7,11 @@ import {mutate} from '@/platform/vendure/api';
 import {LogoutMutation} from './graphql';
 
 export async function logoutAction() {
-    await mutate(LogoutMutation);
-    await removeAuthToken();
+    try {
+        await mutate(LogoutMutation, {}, {useAuthToken: true});
+    } finally {
+        await removeAuthToken();
+    }
 
     const locale = await getLocale();
     redirect({href: '/', locale});

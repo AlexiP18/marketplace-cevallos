@@ -80,6 +80,8 @@
     "toBeCalculated": "Wird noch berechnet",
     "total": "Gesamt",
     "item": "Artikel",
-    "items": "Artikel"
+    "items": "Artikel",
+    "stockReservedPreparing": "Bestand reserviert. Ihre Bestellung wird vor der Zahlung vorbereitet.",
+    "reservingStock": "Bestand wird geprüft und reserviert…"
   }
 }

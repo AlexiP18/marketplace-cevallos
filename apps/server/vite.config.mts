@@ -1,6 +1,7 @@
 import { vendureDashboardPlugin } from '@vendure/dashboard/vite';
 import { join, resolve } from 'path';
 import { pathToFileURL } from 'url';
+import { createRequire } from 'node:module';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -34,6 +35,7 @@ export default defineConfig({
             // This allows all plugins to reference a shared set of
             // GraphQL types.
             '@/gql': resolve(__dirname, './src/gql/graphql.ts'),
+            'shadcn/tailwind.css': createRequire(import.meta.url).resolve('shadcn/tailwind.css', { paths: [__dirname] }),
         },
     },
 });

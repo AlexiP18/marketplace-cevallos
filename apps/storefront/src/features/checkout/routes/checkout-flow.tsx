@@ -11,6 +11,7 @@ import ReviewStep from './steps/review-step';
 import OrderSummary from './order-summary';
 import { useCheckout } from './checkout-provider';
 import {useTranslations} from 'next-intl';
+import {ReservationCountdown} from '@/features/orders/reservation-countdown';
 
 type CheckoutStep = 'contact' | 'shipping' | 'delivery' | 'payment' | 'review';
 
@@ -92,6 +93,7 @@ export default function CheckoutFlow() {
   return (
     <div className="grid lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2">
+        <ReservationCountdown orderCode={order.code} activeOrder />
         {/* Step Progress Indicator */}
         <div className="mb-8 hidden sm:block">
           <div className="flex items-center justify-between">

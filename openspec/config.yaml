@@ -1,0 +1,16 @@
+schema: spec-driven
+context: |
+  Sistema de venta de calzado basado en Vendure. El backend y las extensiones del
+  administrador viven en apps/server; el storefront Next.js vive en apps/storefront.
+  Las especificaciones base describen el comportamiento actual del administrador
+  y de las API que lo sustentan. El canal activo limita los datos cuando aplica.
+  Los importes de Vendure se almacenan en unidades menores de la moneda.
+  Mantener los requisitos en español y con escenarios observables.
+  RNF-08 es transversal a todas las capacidades, al dashboard, al storefront y al
+  Worker. Aplicar specs/modular-architecture/spec.md y docs/architecture.md de la
+  raíz del repositorio; mantener explícitas las responsabilidades y dependencias.
+rules:
+  specs:
+    - Describir comportamiento verificable, no nombres de componentes ni decisiones de implementación.
+    - Actualizar la capacidad afectada cuando cambie un flujo existente; reservar las ideas futuras para changes.
+    - Comprobar RNF-08 en cada capacidad; distinguir criterios exigidos de deuda arquitectónica existente y no afirmar cumplimiento sin verificación.

@@ -1,4 +1,5 @@
 import { LanguageCode, PaymentMethodHandler } from '@vendure/core';
+import { assertReservationBeforePayment } from '../../marketplace/marketplace-strategies';
 
 export const paypalPaymentHandler = new PaymentMethodHandler({
     code: 'paypal-payment-handler',
@@ -39,6 +40,7 @@ export const paypalPaymentHandler = new PaymentMethodHandler({
         },
     },
     createPayment: async (ctx, order, amount, args, metadata) => {
+        await assertReservationBeforePayment(ctx, order);
         const clientId = args.clientId?.trim();
         const clientSecret = args.clientSecret?.trim();
         const isLive = args.environment === 'live';

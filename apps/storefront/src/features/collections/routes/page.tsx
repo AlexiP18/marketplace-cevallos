@@ -6,6 +6,7 @@ import {SearchProductsQuery} from '@/features/search/graphql';
 import {GetCollectionProductsQuery} from '@/features/collections/graphql';
 import {ProductGrid} from '@/features/products/product-grid';
 import {FacetFilters} from '@/features/search/facet-filters';
+import {FootwearFiltersData} from '@/features/search/footwear-filters-data';
 import {ProductGridSkeleton} from '@/features/products/product-grid-skeleton';
 import { buildSearchInput, getCurrentPage } from '@/features/search/search-helpers';
 import { cacheLife, cacheTag } from 'next/cache';
@@ -143,6 +144,7 @@ export default async function CollectionPage({params, searchParams}: PageProps<'
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Filters Sidebar */}
                 <aside className="lg:col-span-1">
+                    <Suspense fallback={<div className="h-32 animate-pulse bg-muted rounded-lg" />}><FootwearFiltersData /></Suspense>
                     <Suspense fallback={<div className="h-64 animate-pulse bg-muted rounded-lg" />}>
                         <FacetFilters productDataPromise={productDataPromise} />
                     </Suspense>

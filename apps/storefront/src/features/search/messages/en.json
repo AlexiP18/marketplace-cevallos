@@ -18,5 +18,14 @@
     "resultsTitle": "Search results for \"{query}\"",
     "metaDescription": "Find products matching \"{query}\" at {siteName}",
     "metaCatalogDescription": "Search our product catalog at {siteName}"
+  },
+  "FootwearFilters": {
+    "title": "Footwear attributes",
+    "talla": "Size",
+    "color": "Color",
+    "capellada": "Upper material",
+    "suela": "Sole material",
+    "horma": "Shoe last",
+    "any": "Any"
   }
 }

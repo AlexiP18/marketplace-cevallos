@@ -3,8 +3,12 @@ import {
     ListPage,
     DetailPageButton,
     Badge,
+    ActionBarItem,
+    Button,
 } from '@vendure/dashboard';
 import { graphql } from '@/gql';
+import { Link } from '@tanstack/react-router';
+import { Plus } from 'lucide-react';
 
 const sellerProfileListDocument = graphql(`
     query SellerProfileList($options: SellerProfileListOptions) {
@@ -113,6 +117,12 @@ export const sellerProfileList: DashboardRouteDefinition = {
                     ],
                 },
             }}
-        />
+        >
+            <ActionBarItem itemId="create-seller" requiresPermission={['SuperAdmin']}>
+                <Button render={<Link to="/seller-profiles/new" />}>
+                    <Plus className="mr-2 h-4 w-4" /> Agregar vendedor / almacenista
+                </Button>
+            </ActionBarItem>
+        </ListPage>
     ),
 };

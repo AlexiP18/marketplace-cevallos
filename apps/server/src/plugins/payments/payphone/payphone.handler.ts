@@ -1,4 +1,5 @@
 import { LanguageCode, PaymentMethodHandler } from '@vendure/core';
+import { assertReservationBeforePayment } from '../../marketplace/marketplace-strategies';
 
 export const payphonePaymentHandler = new PaymentMethodHandler({
     code: 'payphone-payment-handler',
@@ -31,6 +32,7 @@ export const payphonePaymentHandler = new PaymentMethodHandler({
         },
     },
     createPayment: async (ctx, order, amount, args, metadata) => {
+        await assertReservationBeforePayment(ctx, order);
         const token = args.token?.trim();
         const isProduction = args.environment === 'production';
         const transactionId = metadata.transactionId || metadata.id;

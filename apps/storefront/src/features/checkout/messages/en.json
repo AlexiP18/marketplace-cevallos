@@ -80,6 +80,8 @@
     "toBeCalculated": "To be calculated",
     "total": "Total",
     "item": "item",
-    "items": "items"
+    "items": "items",
+    "stockReservedPreparing": "Stock reserved. Preparing your order before payment.",
+    "reservingStock": "Checking and reserving stock…"
   }
 }

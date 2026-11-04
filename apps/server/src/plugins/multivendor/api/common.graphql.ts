@@ -133,6 +133,7 @@ export const commonApiExtensions = gql`
         password: String!
         confirmPassword: String!
         contactPhone: String!
+        photoAssetId: ID
     }
 
     input RegisterSellerInput {

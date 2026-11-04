@@ -3,4 +3,5 @@ dist
 admin-ui
 static/assets
 static/email/test-emails
+static/private-jobs
 .vendure/

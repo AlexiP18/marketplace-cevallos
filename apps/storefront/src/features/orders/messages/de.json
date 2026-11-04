@@ -21,5 +21,13 @@
     "shippingAddress": "Lieferadresse",
     "continueShopping": "Weiter einkaufen",
     "viewOrders": "Bestellungen ansehen"
+  },
+  "OrderReservation": {
+    "pending": "Zeit zur Zahlungsbestätigung: {clock}",
+    "deadlineReached": "Zahlungsfrist abgelaufen; automatische Freigabe steht aus",
+    "paid": "Zahlung bestätigt: Paare bis zum Versand gebunden",
+    "expired": "Reservierung abgelaufen und freigegeben",
+    "cancelled": "Reservierung storniert",
+    "unavailable": "Der Reservierungsstatus konnte nicht aktualisiert werden. Bitte erneut versuchen."
   }
 }

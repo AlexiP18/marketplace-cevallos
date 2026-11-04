@@ -18,5 +18,14 @@
     "resultsTitle": "Suchergebnisse für \"{query}\"",
     "metaDescription": "Produkte für \"{query}\" bei {siteName} finden",
     "metaCatalogDescription": "Durchsuchen Sie unseren Produktkatalog bei {siteName}"
+  },
+  "FootwearFilters": {
+    "title": "Schuhmerkmale",
+    "talla": "Größe",
+    "color": "Farbe",
+    "capellada": "Obermaterial",
+    "suela": "Sohlenmaterial",
+    "horma": "Leistenform",
+    "any": "Alle"
   }
 }

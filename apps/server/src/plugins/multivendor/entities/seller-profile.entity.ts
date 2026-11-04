@@ -46,6 +46,9 @@ export class SellerProfile extends VendureEntity {
     @Column({ type: 'varchar', length: 50, default: '' })
     contactPhone: string;
 
+    @Column({ type: 'boolean', default: false })
+    allowsCombinedShipping: boolean;
+
     @Column({ type: 'simple-json', nullable: true })
     socialLinks: SocialLinks;
 

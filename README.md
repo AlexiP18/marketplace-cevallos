@@ -14,6 +14,13 @@ vendure-prueba/
 └── package.json      # Root workspace configuration
 ```
 
+## Architecture and Requirements
+
+The project follows [RNF-08: modular architecture](openspec/specs/modular-architecture/spec.md).
+See the [architecture guide](docs/architecture.md) for domain ownership, layer boundaries,
+integration rules and known coupling. The [OpenSpec catalog](openspec/README.md) contains
+the functional and non-functional requirements.
+
 ## Getting Started
 
 ### Development

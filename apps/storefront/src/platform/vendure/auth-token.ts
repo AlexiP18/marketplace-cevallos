@@ -4,7 +4,7 @@ const AUTH_TOKEN_COOKIE = process.env.VENDURE_AUTH_TOKEN_COOKIE || 'vendure-auth
 
 export async function setAuthToken(token: string) {
     const cookieStore = await cookies();
-    cookieStore.set(AUTH_TOKEN_COOKIE, token);
+    cookieStore.set(AUTH_TOKEN_COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: 8 * 60 * 60 });
 }
 
 export async function getAuthToken(): Promise<string | undefined> {

@@ -11,6 +11,69 @@
 name: 'vendure-prueba'
 
 services:
+    api:
+        profiles: [application]
+        image: vendure-prueba-server
+        build:
+            context: ../..
+            dockerfile: apps/server/Dockerfile
+        command: node dist/index.js
+        env_file: .env
+        environment:
+            DB_HOST: postgres_db
+            DB_PORT: 5432
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+            VENDURE_BIND_ADDRESS: 0.0.0.0
+        ports:
+            - "127.0.0.1:3000:3000"
+        healthcheck:
+            test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/shop-api',{method:'POST',headers:{'content-type':'application/json','x-forwarded-proto':'https'},body:JSON.stringify({query:'{ __typename }'})}).then(r=>r.json()).then(r=>process.exit(r.data?.__typename==='Query'?0:1)).catch(()=>process.exit(1))"]
+            interval: 10s
+            timeout: 5s
+            retries: 12
+            start_period: 30s
+        volumes:
+            - ./static/assets:/usr/src/app/apps/server/static/assets
+            - ./static/private-jobs:/usr/src/app/apps/server/static/private-jobs
+        depends_on:
+            redis:
+                condition: service_healthy
+            postgres_db:
+                condition: service_started
+        restart: unless-stopped
+
+    worker:
+        profiles: [application]
+        image: vendure-prueba-server
+        build:
+            context: ../..
+            dockerfile: apps/server/Dockerfile
+        command: node dist/index-worker.js
+        env_file: .env
+        environment:
+            DB_HOST: postgres_db
+            DB_PORT: 5432
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+            MARKETPLACE_WORKER_ROLE: general
+        volumes:
+            - ./static/assets:/usr/src/app/apps/server/static/assets
+            - ./static/private-jobs:/usr/src/app/apps/server/static/private-jobs
+        depends_on:
+            api:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        restart: unless-stopped
+
+    reservation_worker:
+        profiles: [application]
+        extends:
+            service: worker
+        environment:
+            MARKETPLACE_WORKER_ROLE: admission
+
     postgres_db:
         image: postgres:16-alpine
         volumes:
@@ -57,8 +120,14 @@ services:
     # Checkout our BullMQ plugin: https://docs.vendure.io/reference/core-plugins/job-queue-plugin/bull-mqjob-queue-plugin/
     redis:
         image: redis:7-alpine
+        command: redis-server --appendonly yes --appendfsync everysec --maxmemory-policy noeviction
         ports:
-            - "6479:6379"
+            - "127.0.0.1:6479:6379"
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 3s
+            retries: 5
         volumes:
             - redis_data:/data
         labels:

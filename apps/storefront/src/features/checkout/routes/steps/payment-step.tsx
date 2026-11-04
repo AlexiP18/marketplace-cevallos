@@ -1,5 +1,7 @@
 'use client';
 
+import {safeHtml} from '@/lib/safe-html';
+
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -102,7 +104,7 @@ export default function PaymentStep({ onComplete }: PaymentStepProps) {
                     {method.description && (
                       <p
                         className="text-sm text-muted-foreground mt-1.5"
-                        dangerouslySetInnerHTML={{ __html: method.description }}
+                        dangerouslySetInnerHTML={{ __html: safeHtml(method.description) }}
                       />
                     )}
 

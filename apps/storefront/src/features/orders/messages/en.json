@@ -21,5 +21,13 @@
     "shippingAddress": "Shipping Address",
     "continueShopping": "Continue Shopping",
     "viewOrders": "View Orders"
+  },
+  "OrderReservation": {
+    "pending": "Time to confirm payment: {clock}",
+    "deadlineReached": "Payment deadline reached; awaiting automatic release",
+    "paid": "Payment confirmed: pairs committed until dispatch",
+    "expired": "Reservation expired and released",
+    "cancelled": "Reservation cancelled",
+    "unavailable": "The reservation status could not be refreshed. Please try again."
   }
 }

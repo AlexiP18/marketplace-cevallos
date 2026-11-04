@@ -140,12 +140,13 @@ export function FacetFilters({ productDataPromise }: FacetFiltersProps) {
     const clearFilters = () => {
         const params = new URLSearchParams(searchParams);
         params.delete('facets');
+        for (const key of ['talla', 'color', 'capellada', 'suela', 'horma']) params.delete(key);
         params.delete('page');
         router.push(`${pathname}?${params.toString()}`);
         setSheetOpen(false);
     };
 
-    const hasActiveFilters = selectedFacets.length > 0;
+    const hasActiveFilters = selectedFacets.length > 0 || ['talla', 'color', 'capellada', 'suela', 'horma'].some(key => searchParams.has(key));
 
     if (Object.keys(facetGroups).length === 0) {
         return null;

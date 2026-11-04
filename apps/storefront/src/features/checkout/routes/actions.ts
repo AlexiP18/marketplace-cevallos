@@ -1,7 +1,9 @@
 'use server';
 
-import {mutate} from '@/platform/vendure/api';
-import {SetOrderShippingAddressMutation, SetOrderBillingAddressMutation, SetOrderShippingMethodMutation, AddPaymentToOrderMutation, TransitionOrderToStateMutation, SetCustomerForOrderMutation} from '@/features/checkout/graphql';
+import {mutate, query} from '@/platform/vendure/api';
+import {parse} from 'graphql';
+import type {TadaDocumentNode} from 'gql.tada';
+import {SetOrderShippingAddressMutation, SetOrderBillingAddressMutation, SetOrderShippingMethodMutation, AddPaymentToOrderMutation, SetCustomerForOrderMutation} from '@/features/checkout/graphql';
 import {CreateCustomerAddressMutation} from '@/features/account/graphql';
 import {revalidatePath, updateTag} from 'next/cache';
 import {redirect} from '@/platform/i18n/navigation';
@@ -76,27 +78,43 @@ export async function createCustomerAddress(address: AddressInput) {
     return result.data.createCustomerAddress;
 }
 
-export async function transitionToArrangingPayment() {
-    const result = await mutate(
-        TransitionOrderToStateMutation,
-        {state: 'ArrangingPayment'},
-        {useAuthToken: true}
-    );
+export async function reserveCheckoutStock() {
+    const document = parse('mutation { reserveMarketplaceCheckout { id state result errorCode message } }') as unknown as TadaDocumentNode<{reserveMarketplaceCheckout:{id:string;state:string;result?:{stockConfirmed?:boolean};message?:string}},Record<string,never>>;
+    const job=(await mutate(document,{}, {useAuthToken:true})).data.reserveMarketplaceCheckout;
+    return {id:job.id,stockConfirmed:job.result?.stockConfirmed===true,error:job.state==='failed' ? job.message||'No se pudo reservar el stock.' : undefined};
+}
 
-    if (result.data.transitionOrderToState?.__typename === 'OrderStateTransitionError') {
-        const errorResult = result.data.transitionOrderToState;
-        throw new Error(
-            `Failed to transition order state: ${errorResult.errorCode} - ${errorResult.message}`
-        );
+async function waitForCheckoutPreparation(id:string) {
+    const status = parse('query Reservation($id: String!) { marketplaceCheckoutJob(id: $id, wait: true) { state errorCode message } }') as unknown as TadaDocumentNode<{ marketplaceCheckoutJob: { state: string; errorCode?: string; message?: string } }, { id: string }>;
+    let completed = false;
+    for (let attempt = 0; attempt < 90; attempt++) {
+        const response = await query(status, {id}, {useAuthToken: true});
+        const result = response.data.marketplaceCheckoutJob;
+        if (result.state === 'failed') return result.message || 'No se pudo preparar el pedido.';
+        if (result.state === 'completed') { completed = true; break; }
     }
+    if (!completed) return 'El pedido sigue preparándose. Vuelve a intentarlo en unos momentos.';
 
     const locale = await getLocale();
     revalidatePath(`/${locale}/checkout`);
 }
 
-export async function placeOrder(paymentMethodCode: string, customMetadata: Record<string, unknown> = {}) {
+export async function transitionToArrangingPayment() {
+    const job=await reserveCheckoutStock();
+    if(job.error) throw new Error(job.error);
+    const error=await waitForCheckoutPreparation(job.id);
+    if(error) throw new Error(error);
+}
+
+export async function placeOrder(paymentMethodCode: string, customMetadata: Record<string, unknown> = {}, reservationJobId?:string) {
     // First, transition the order to ArrangingPayment state
-    await transitionToArrangingPayment();
+    if(reservationJobId) {
+        const preparationError=await waitForCheckoutPreparation(reservationJobId);
+        if(preparationError) return {error:preparationError};
+        const check=parse('query($id:String!){activeOrder{id} marketplaceCheckoutJob(id:$id){result}}') as unknown as TadaDocumentNode<{activeOrder:{id:string}|null;marketplaceCheckoutJob:{result?:{orderId?:string|number}}},{id:string}>;
+        const current=(await query(check,{id:reservationJobId},{useAuthToken:true})).data;
+        if(!current.activeOrder || String(current.activeOrder.id)!==String(current.marketplaceCheckoutJob.result?.orderId)) return {error:'El carrito activo cambió. Revisa el pedido antes de pagar.'};
+    } else await transitionToArrangingPayment();
 
     // Prepare metadata based on payment method
     const metadata: Record<string, unknown> = { ...customMetadata };
@@ -132,9 +150,7 @@ export async function placeOrder(paymentMethodCode: string, customMetadata: Reco
 
     if (result.data.addPaymentToOrder.__typename !== 'Order') {
         const errorResult = result.data.addPaymentToOrder;
-        throw new Error(
-            `Failed to place order: ${errorResult.errorCode} - ${errorResult.message}`
-        );
+        return {error:errorResult.message};
     }
 
     const orderCode = result.data.addPaymentToOrder.code;

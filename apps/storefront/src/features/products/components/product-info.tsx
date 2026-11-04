@@ -1,5 +1,7 @@
 'use client';
 
+import {safeHtml} from '@/lib/safe-html';
+
 import {useState, useMemo, useTransition} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {usePathname, useRouter} from '@/platform/i18n/navigation';
@@ -156,7 +158,7 @@ export function ProductInfo({product, searchParams, currencyCode}: ProductInfoPr
 
             {/* Product Description */}
             <div className="prose prose-sm max-w-none text-muted-foreground">
-                <div dangerouslySetInnerHTML={{__html: product.description}}/>
+                <div dangerouslySetInnerHTML={{__html: safeHtml(product.description)}}/>
             </div>
 
             {/* Option Groups */}

@@ -55,6 +55,7 @@ export async function query<TResult, TVariables>(
 
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
+        'Apollo-Require-Preflight': 'true',
         ...(fetchOptions?.headers as Record<string, string>),
     };
 

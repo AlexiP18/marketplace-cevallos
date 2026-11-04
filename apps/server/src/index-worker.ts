@@ -1,8 +1,9 @@
 import { bootstrapWorker } from '@vendure/core';
-import { config } from './vendure-config';
+import { config, marketplaceWorkerRole } from './vendure-config';
 
 bootstrapWorker(config)
-    .then(worker => worker.startJobQueue())
+    .then(worker => marketplaceWorkerRole === 'admission' ? undefined : worker.startJobQueue())
     .catch(err => {
         console.log(err);
+        process.exitCode = 1;
     });

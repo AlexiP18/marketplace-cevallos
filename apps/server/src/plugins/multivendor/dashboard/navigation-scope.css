@@ -1,0 +1,9 @@
+[data-sidebar="menu-item"]:has([data-superadmin-hidden="true"]) {
+    display: none;
+}
+[data-superadmin-dashboard] [data-sidebar="header"] {
+    display: none;
+}
+[data-superadmin-dashboard] a[href$="/warehouse-users"] {
+    display: none;
+}

@@ -1,0 +1,10 @@
+.git
+**/node_modules
+**/.env*
+**/.next
+**/.vendure
+**/dist
+**/*.tsbuildinfo
+apps/server/static/assets
+apps/server/static/private-jobs
+apps/server/static/email/test-emails
